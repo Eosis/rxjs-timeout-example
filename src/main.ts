@@ -1,10 +1,22 @@
-export const delayMillis = (delayMs: number): Promise<void> => new Promise(resolve => setTimeout(resolve, delayMs));
 
-export const greet = (name: string): string => `Hello ${name}`
+import { timeout, of, BehaviorSubject } from 'rxjs'
 
-export const foo = async (): Promise<boolean> => {
-  console.log(greet('World'))
-  await delayMillis(1000)
-  console.log('done')
-  return true
+const base_subject$ = new BehaviorSubject(1);
+
+const with_timeout = base_subject$.pipe(
+	timeout({first: 500, with: () => of(-1)}),
+);
+
+const wait = async (ms: number) => {
+  await new Promise((resolve) => { setTimeout(resolve, ms) })
+}
+
+export const foo = async (): Promise<void> => {
+  const sub = with_timeout.subscribe(
+    console.log
+  )
+  await wait(1000)
+  base_subject$.next(2)
+  await wait(1000)
+  sub.unsubscribe()
 }
